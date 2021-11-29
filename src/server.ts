@@ -1,6 +1,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import { resolve } from 'bluebird';
+const request = require('request');
+const fs = require('fs');
+const Filter = require ('node-image-filter');
+const Path = require('path');
 
 (async () => {
 
@@ -36,6 +41,21 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   app.get( "/", async ( req, res ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
+
+  app.get("/filteredimage", async ( req, res ) => {
+    let {url} = req.query
+    if (!url) return res.status(400).send("Invalid Adress")
+
+    let tempPath = Path.join(__dirname, "/util/tmp/")
+    var resolvedPaths: string[] = []
+    fs.readdirSync(tempPath).forEach((file: string) =>{
+      resolvedPaths.push(Path.join(__dirname,"/util/tmp/",file))
+    })
+    deleteLocalFiles(resolvedPaths)
+
+    let path =  await filterImageFromURL(url)
+    res.status(200).sendFile(path,function(err:any){console.log(err)})
+  })
   
 
   // Start the Server
@@ -44,3 +64,13 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
       console.log( `press CTRL+C to stop server` );
   } );
 })();
+
+
+var download = function(url: any, callback: any){
+  request.head(url, function(err: any, res: { headers: { [x: string]: any; }; }, body: any){
+    console.log('content-type:', res.headers['content-type']);
+    console.log('content-length:', res.headers['content-length']);
+
+    request(url).pipe(fs.createWriteStream("stuff.jpg")).on('close', callback);
+  });
+};
