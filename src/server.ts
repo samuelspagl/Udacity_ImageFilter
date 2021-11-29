@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 import { resolve } from 'bluebird';
+const isImageURL = require('image-url-validator').default;
 const request = require('request');
 const fs = require('fs');
 const Filter = require ('node-image-filter');
@@ -45,7 +46,9 @@ var filePaths: string[] = [];
 
   app.get("/filteredimage", async ( req, res ) => {
     let {url} = req.query
-    if (!url) return res.status(400).send("Invalid Adress")
+    if (!url) return res.status(400).send("No Adress")
+    let isImage = await isImageURL(url)
+    if (!isImage) return res.status(400).send("Invalid image url")
     deleteLocalFiles(filePaths)
 
     let path =  await filterImageFromURL(url)
