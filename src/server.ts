@@ -6,6 +6,7 @@ const request = require('request');
 const fs = require('fs');
 const Filter = require ('node-image-filter');
 const Path = require('path');
+var filePaths: string[] = [];
 
 (async () => {
 
@@ -45,15 +46,10 @@ const Path = require('path');
   app.get("/filteredimage", async ( req, res ) => {
     let {url} = req.query
     if (!url) return res.status(400).send("Invalid Adress")
-
-    let tempPath = Path.join(__dirname, "/util/tmp/")
-    var resolvedPaths: string[] = []
-    fs.readdirSync(tempPath).forEach((file: string) =>{
-      resolvedPaths.push(Path.join(__dirname,"/util/tmp/",file))
-    })
-    deleteLocalFiles(resolvedPaths)
+    deleteLocalFiles(filePaths)
 
     let path =  await filterImageFromURL(url)
+    filePaths.push(path)
     res.status(200).sendFile(path,function(err:any){console.log(err)})
   })
   
