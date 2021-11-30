@@ -45,7 +45,7 @@ var filePaths: string[] = [];
   } );
 
   app.get("/filteredimage", async ( req, res ) => {
-    let {url} = req.query
+    let url = req.query.image_url
     if (!url) return res.status(400).send("No Adress")
     let isImage = await isImageURL(url)
     if (!isImage) return res.status(400).send("Invalid image url")
